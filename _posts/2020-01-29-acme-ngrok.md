@@ -20,8 +20,6 @@ ngrok http 3000 -subdomain myapp
 
 which would result in any requests to myapp.ngrok.io being routed to port 3000 on your dev box.  That is the simple case, getting ngrok configured to not only route SSL traffic but also allow certificate retreval needed by let's encrypt requires multiple concurrent tunnels.  I'm not going to go into much depth on why this is or how it works (you can read about that [here: https://letsencrypt.org/how-it-works/](https://letsencrypt.org/how-it-works/)) but I am going to present my solution as I wasn't able to find an explanation of this elsewhere.
 
-{% gist 0000a9057bd973000057e31f1085ccfc ngrokconfig.yaml %}
-
 The trick is you need two tunnels running simultaniously, one for autocert to handshake with let's encrypt and grab a free certificate (which critically requires our local server to be visible on the internet to respond to a remote challenge request on port 80) and one for the SSL traffic inbound over port 443.  I didn't initially appreciate the need for the first tunnel because I didn't understand the fact that our dev server needs to respond to the challenge request on port 80.  You can see this if you look carefully at the Go code above.. there are two separate ListAndServe calls, one on port 8080 for the challenge and one of 8443 for the actual server.  nGrok helpfully maps the external requests on 443 and 80 to 8443 and 8080 as part of it's tunneling magic.
 
 ```Go
